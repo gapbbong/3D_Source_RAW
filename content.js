@@ -7,8 +7,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 let loadedFont = null;
 const fontUrl = 'https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_regular.typeface.json';
 
-const robotUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
-const flamingoUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/Flamingo.glb';
+const trexUrl = 'https://raw.githubusercontent.com/code4fukui/glb-viewer/main/T-REX.glb';
+const sharkUrl = 'https://models.babylonjs.com/shark.glb';
+const astronautUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
+const shibaUrl = 'https://raw.githubusercontent.com/Geo-Web-Project/webxr-experiments/main/shiba.glb';
 
 // Dynamic Grid Texture Generator
 function createGridTexture(lineColor, bgColor, density = 32) {
@@ -56,22 +58,17 @@ export class SceneContentManager {
     this.boxDepth = boxDepth;
     this.borderSize = borderSize;
     
-    this.activePreset = 'text'; // 'text' | 'crystal' | 'torus' | 'robot' | 'flamingo'
+    this.activePreset = 'text'; // 'text' | 'trex' | 'shark' | 'astronaut' | 'shiba'
     this.neonColor = '#00f3ff';
     this.textValue = 'WELCOME';
     this.rotationSpeed = 1.0;
     
     // Animation properties
     this.mixer = null;
-    this.mixers = [];             // List of mixers for multiple objects (e.g. flamingo flock)
-    this.flamingoClones = [];     // List of cloned flamingo meshes
-    this.flamingoCount = 3;       // Default number of flamingos in flock
-    this.baseFlamingoModel = null;
-    this.flamingoAnimations = [];
-    
+    this.mixers = [];             // List of mixers for multiple objects
     this.loadedModel = null;
     this.modelAnimations = [];
-    this.activeAnimationName = 'Jump'; // Default for robot
+    this.activeAnimationName = 'Run'; // Default for fox
     
     // Group for the room chamber
     this.roomGroup = new THREE.Group();
@@ -504,8 +501,8 @@ export class SceneContentManager {
         this.objectGroup.add(knot);
       }
     } 
-    // GLTF presets (robot, flamingo)
-    else if (this.activePreset === 'robot' || this.activePreset === 'flamingo') {
+    // Preset selections
+    if (this.activePreset === 'trex' || this.activePreset === 'shark' || this.activePreset === 'astronaut' || this.activePreset === 'shiba') {
       this.loadGLTFModel();
     }
   }
@@ -514,7 +511,10 @@ export class SceneContentManager {
   loadGLTFModel() {
     const loader = new GLTFLoader();
     const preset = this.activePreset;
-    const url = preset === 'robot' ? robotUrl : flamingoUrl;
+    let url = trexUrl;
+    if (preset === 'shark') url = sharkUrl;
+    else if (preset === 'astronaut') url = astronautUrl;
+    else if (preset === 'shiba') url = shibaUrl;
 
     // Show a loading torus placeholder
     const tempGeom = new THREE.TorusGeometry(0.25, 0.06, 8, 24);
@@ -531,40 +531,55 @@ export class SceneContentManager {
         }
         
         this.clearObjects();
-        
-        if (preset === 'flamingo') {
-          this.baseFlamingoModel = gltf.scene;
-          this.flamingoAnimations = gltf.animations;
-          this.recreateFlamingoFlock();
-        } 
-        else if (preset === 'robot') {
-          const model = gltf.scene;
-          this.loadedModel = model;
-          this.modelAnimations = gltf.animations;
+        const model = gltf.scene;
+        this.loadedModel = model;
+        this.modelAnimations = gltf.animations;
 
-          // Traverse to enable shadows
-          model.traverse(child => {
-            if (child.isMesh) {
-              child.castShadow = true;
-              child.receiveShadow = true;
-            }
-          });
+        // Traverse to enable shadows
+        model.traverse(child => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
 
-          // Scale robot to fit inside
-          model.scale.set(0.3, 0.3, 0.3);
-          
-          // Position standing on the bottom floor of the chamber (slightly forward)
+        // Set scaling and default positions
+        if (preset === 'trex') {
+          model.scale.set(0.18, 0.18, 0.18);
           const posY = -this.screenH / 2 + this.borderSize;
           model.position.set(0, posY, -this.boxDepth / 2);
-          model.rotation.y = 0; // Face towards the viewer/front
-          
-          this.objectGroup.add(model);
+          model.rotation.y = 0; // Face front
+        } 
+        else if (preset === 'shark') {
+          model.scale.set(0.45, 0.45, 0.45);
+          model.position.set(0, 0, -this.boxDepth / 2);
+          model.rotation.y = 0; // Swim forward
+        }
+        else if (preset === 'astronaut') {
+          model.scale.set(0.4, 0.4, 0.4);
+          model.position.set(0, 0, -this.boxDepth / 2);
+          model.rotation.y = 0; // Face forward
+        }
+        else if (preset === 'shiba') {
+          model.scale.set(1.2, 1.2, 1.2);
+          const posY = -this.screenH / 2 + this.borderSize;
+          model.position.set(0, posY, -this.boxDepth / 2);
+          model.rotation.y = Math.PI; // Face forward (adjust if model is oriented backwards)
+        }
 
-          // Setup animations
-          if (gltf.animations && gltf.animations.length > 0) {
-            this.mixer = new THREE.AnimationMixer(model);
-            this.mixer.timeScale = this.rotationSpeed;
-            this.updateRobotAnimation(this.activeAnimationName);
+        this.objectGroup.add(model);
+
+        // Setup animations
+        if (gltf.animations && gltf.animations.length > 0) {
+          this.mixer = new THREE.AnimationMixer(model);
+          this.mixer.timeScale = this.rotationSpeed;
+          
+          if (preset === 'shiba') {
+            this.updateShibaAnimation(this.activeAnimationName);
+          } else {
+            // Play first animation for trex and shark
+            const action = this.mixer.clipAction(gltf.animations[0]);
+            action.play();
           }
         }
       },
@@ -573,79 +588,23 @@ export class SceneContentManager {
         console.error(`Failed to load GLTF model: ${url}`, err);
         // Fallback
         this.clearObjects();
-        this.activePreset = 'crystal';
-        this.buildMeshPreset();
+        this.activePreset = 'text';
+        this.loadFontAndCreateText();
       }
     );
   }
 
-  // Instantiates N flamingo models at staggered intervals
-  recreateFlamingoFlock() {
-    // Clear old clones and mixers
-    this.mixers = [];
-    this.flamingoClones = [];
-    
-    // Clear objectGroup children
-    while(this.objectGroup.children.length > 0) {
-      const obj = this.objectGroup.children[0];
-      obj.traverse(child => {
-        if (child.geometry) child.geometry.dispose();
-        if (child.material) {
-          if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-          else child.material.dispose();
-        }
-      });
-      this.objectGroup.remove(obj);
-    }
-
-    if (!this.baseFlamingoModel || !this.flamingoAnimations || this.flamingoAnimations.length === 0) return;
-
-    const N = this.flamingoCount;
-    for (let i = 0; i < N; i++) {
-      const clone = this.baseFlamingoModel.clone();
-      
-      // Scale
-      clone.scale.set(0.004, 0.004, 0.004);
-      
-      // Enable shadows
-      clone.traverse(child => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
-      });
-
-      // Add to scene group
-      this.objectGroup.add(clone);
-      this.flamingoClones.push(clone);
-
-      // Create a mixer for this specific clone
-      const mixer = new THREE.AnimationMixer(clone);
-      const action = mixer.clipAction(this.flamingoAnimations[0]);
-      action.play();
-      
-      // Randomize animation play offsets so they don't flap wings in sync
-      const clipDuration = this.flamingoAnimations[0].duration;
-      mixer.update(Math.random() * clipDuration);
-      mixer.timeScale = this.rotationSpeed;
-      
-      this.mixers.push(mixer);
-    }
-  }
-
-  // Update flamingo count and rebuild flock
-  updateFlamingoCount(count) {
-    this.flamingoCount = count;
-    if (this.activePreset === 'flamingo' && this.baseFlamingoModel) {
-      this.recreateFlamingoFlock();
-    }
-  }
-
-  // Update robot active animation clip
-  updateRobotAnimation(animName) {
+  // Update shiba active animation clip
+  updateShibaAnimation(animName) {
     this.activeAnimationName = animName;
-    if (this.activePreset === 'robot' && this.loadedModel && this.mixer && this.modelAnimations.length > 0) {
-      const clip = THREE.AnimationClip.findByName(this.modelAnimations, animName);
+    if (this.activePreset === 'shiba' && this.loadedModel && this.mixer && this.modelAnimations.length > 0) {
+      let clip = THREE.AnimationClip.findByName(this.modelAnimations, animName);
+      if (!clip) {
+        clip = this.modelAnimations.find(a => a.name.toLowerCase().includes(animName.toLowerCase()));
+      }
+      if (!clip && this.modelAnimations.length > 0) {
+        clip = this.modelAnimations[0];
+      }
       if (clip) {
         this.mixer.stopAllAction();
         const action = this.mixer.clipAction(clip);
@@ -688,8 +647,6 @@ export class SceneContentManager {
   updatePreset(presetName) {
     this.activePreset = presetName;
     this.clearObjects();
-    this.baseFlamingoModel = null;
-    this.flamingoAnimations = [];
     
     if (presetName === 'text') {
       this.loadFontAndCreateText();
@@ -708,12 +665,15 @@ export class SceneContentManager {
     this.buildParticles();
     
     // Re-adjust model coordinates based on new dimensions
-    if (this.activePreset === 'robot' && this.loadedModel) {
-      const posY = -h / 2 + border;
-      this.loadedModel.position.set(0, posY, -depth / 2);
-    } 
-    else if (this.activePreset === 'flamingo' && this.baseFlamingoModel) {
-      this.recreateFlamingoFlock();
+    if (this.loadedModel) {
+      const preset = this.activePreset;
+      if (preset === 'trex' || preset === 'shiba') {
+        const posY = -h / 2 + border;
+        this.loadedModel.position.set(0, posY, -depth / 2);
+      } 
+      else if (preset === 'shark' || preset === 'astronaut') {
+        this.loadedModel.position.set(0, 0, -depth / 2);
+      }
     }
     else if (this.objectGroup.children[0]) {
       this.objectGroup.children.forEach(obj => {
@@ -731,75 +691,74 @@ export class SceneContentManager {
 
     // 2. Update Animation Mixers (for GLTF models)
     if (this.mixer) {
-      // Sync speed slider with mixer timescale dynamically
       this.mixer.timeScale = this.rotationSpeed;
       this.mixer.update(deltaTime);
     }
-    
-    if (this.mixers && this.mixers.length > 0) {
-      this.mixers.forEach(m => {
-        m.timeScale = this.rotationSpeed;
-        m.update(deltaTime);
-      });
-    }
 
-    // 2.5 Custom trajectory for Robot Jump (lunge forward out of screen!)
-    if (this.activePreset === 'robot' && this.loadedModel) {
-      const posY = -this.screenH / 2 + this.borderSize;
-      const baseZ = -this.boxDepth / 2;
-      let offsetZ = 0;
-
-      if (this.mixer && this.activeAnimationName === 'Jump') {
-        const clip = THREE.AnimationClip.findByName(this.modelAnimations, 'Jump');
-        if (clip) {
-          const action = this.mixer.existingAction(clip);
-          if (action && action.isRunning()) {
-            const timeInClip = action.time % clip.duration;
-            const u = timeInClip / clip.duration;
-            // Lunge forward Z-axis (towards screen)
-            // Pops out by about 0.8 meters in front of Z=0 screen plane
-            const maxLunge = this.boxDepth * 0.5 + 0.8;
-            offsetZ = Math.sin(u * Math.PI) * maxLunge;
-            
-            // Tilt slightly forward to amplify landing/jumping effect
-            this.loadedModel.rotation.x = -Math.sin(u * Math.PI) * 0.18;
-          }
-        }
-      } else {
-        this.loadedModel.rotation.x = 0;
-      }
-      this.loadedModel.position.set(0, posY, baseZ + offsetZ);
-    }
-
-    // 3. Custom trajectory for Flamingo Flock (fly forward out of screen!)
-    if (this.activePreset === 'flamingo' && this.flamingoClones.length > 0) {
+    // 2.5 Custom trajectories for Pop-Out elements in tick loop
+    if (this.loadedModel) {
+      const preset = this.activePreset;
       const D = this.boxDepth;
-      const N = this.flamingoClones.length;
-
-      this.flamingoClones.forEach((clone, i) => {
-        // Stagger flight cycle progress along Z-axis by adding offsets
-        const offset = i / N;
-        // Fly cycle: 0 to 1 loop, staggered
-        const flyCycle = (time * 0.18 + offset) % 1.0; 
+      
+      // A. T-Rex Lunge forward
+      if (preset === 'trex') {
+        const posY = -this.screenH / 2 + this.borderSize;
+        const baseZ = -D / 2;
+        // Lunge movement
+        const lunge = Math.sin(time * 0.7) * (D * 0.25 + 0.35); // Moves forward/back
+        this.loadedModel.position.set(0, posY, baseZ + lunge);
         
-        // Z moves from deep inside (-D) to popping out (+1.2 meters)
+        // Tilt slightly forward during lunge
+        this.loadedModel.rotation.x = -Math.max(0, lunge) * 0.12;
+        // Minor head wave
+        this.loadedModel.rotation.y = Math.sin(time * 1.2) * 0.08;
+      } 
+      // B. Shark swimming and lunging forward
+      else if (preset === 'shark') {
+        const swimCycle = (time * 0.18) % 1.0; 
         const startZ = -D;
-        const endZ = 1.2; 
-        clone.position.z = startZ + flyCycle * (endZ - startZ);
+        const endZ = 1.1; // Pops out in front
+        this.loadedModel.position.z = startZ + swimCycle * (endZ - startZ);
         
-        // Staggered V-formation spread layout (horizontal)
-        const horizontalSpread = (i - (N - 1) / 2) * (this.screenW * 0.16);
-        clone.position.x = Math.sin(time * 1.0 + i * 2.0) * (this.screenW * 0.12) + horizontalSpread;
+        // Staggered swim wave
+        this.loadedModel.position.x = Math.sin(time * 1.2) * (this.screenW * 0.22);
+        this.loadedModel.position.y = Math.cos(time * 1.5) * (this.screenH * 0.15);
         
-        // Vertical altitude staggering
-        const verticalSpread = Math.sin(i * 3.14) * (this.screenH * 0.08);
-        clone.position.y = Math.cos(time * 1.4 + i * 1.5) * (this.screenH * 0.12) + verticalSpread;
+        // Align rotation to swim direction
+        this.loadedModel.rotation.y = Math.cos(time * 1.2) * 0.15;
+        this.loadedModel.rotation.x = Math.sin(time * 1.5) * 0.04;
+        this.loadedModel.rotation.z = Math.cos(time * 1.2) * 0.08; // banking roll
+      }
+      // C. Astronaut floating slowly in zero gravity
+      else if (preset === 'astronaut') {
+        this.loadedModel.position.x = Math.sin(time * 0.4) * (this.screenW * 0.24);
+        this.loadedModel.position.y = Math.cos(time * 0.5) * (this.screenH * 0.18);
         
-        // Point bird in direction of flight (heading forward towards screen/viewer)
-        clone.rotation.y = Math.cos(time * 1.0 + i * 2.0) * 0.12;
-        clone.rotation.x = Math.sin(time * 1.4 + i * 1.5) * 0.04;
-        clone.rotation.z = Math.cos(time * 1.0 + i * 2.0) * 0.05;
-      });
+        const floatCycle = Math.sin(time * 0.3);
+        const startZ = -D / 2;
+        this.loadedModel.position.z = startZ + floatCycle * (D * 0.4 + 0.6); // drifts forward
+        
+        // Slowly tumble
+        this.loadedModel.rotation.x = time * 0.15;
+        this.loadedModel.rotation.y = time * 0.2;
+        this.loadedModel.rotation.z = time * 0.08;
+      }
+      // D. Shiba running, leaping and playing forward (pop out!)
+      else if (preset === 'shiba') {
+        const leapCycle = (time * 0.28) % 1.0;
+        const startZ = -D * 0.8;
+        const endZ = 1.2;
+        this.loadedModel.position.z = startZ + leapCycle * (endZ - startZ);
+        this.loadedModel.position.x = Math.sin(time * 1.6) * (this.screenW * 0.18);
+        
+        const leapHeight = Math.sin(leapCycle * Math.PI) * 0.45;
+        const posY = -this.screenH / 2 + this.borderSize;
+        this.loadedModel.position.y = posY + leapHeight;
+        
+        this.loadedModel.rotation.y = Math.PI + Math.sin(time * 1.6) * 0.2;
+        this.loadedModel.rotation.x = -Math.sin(leapCycle * Math.PI) * 0.3;
+        this.loadedModel.rotation.z = Math.cos(time * 2.0) * 0.1;
+      }
     }
     // Simple rotation animations for geometric shapes
     else if (this.objectGroup.children[0] && (this.activePreset === 'crystal' || this.activePreset === 'torus' || this.activePreset === 'text')) {

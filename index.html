@@ -175,21 +175,21 @@
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
                   입체 네온 텍스트
                 </button>
-                <button class="btn btn-select" data-obj="crystal">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                  회전하는 크리스탈
-                </button>
-                <button class="btn btn-select" data-obj="torus">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"/><circle cx="12" cy="12" r="3"/></svg>
-                  토러스 꼬임 매듭
-                </button>
-                <button class="btn btn-select" data-obj="robot">
+                <button class="btn btn-select" data-obj="trex">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 15h.01M16 15h.01"/></svg>
-                  뛰어오르는 로봇 (캐릭터)
+                  포효하는 티라노 (T-Rex)
                 </button>
-                <button class="btn btn-select" data-obj="flamingo">
+                <button class="btn btn-select" data-obj="shark">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                  날아오는 홍학 (동물)
+                  돌진하는 백상아리 (Shark)
+                </button>
+                <button class="btn btn-select" data-obj="astronaut">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 0-5 5v3a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5zM5 20v-1a7 7 0 0 1 14 0v1H5z"/></svg>
+                  무중력 우주비행사 (Astronaut)
+                </button>
+                <button class="btn btn-select" data-obj="shiba">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  장난치는 시바견 (Shiba)
                 </button>
               </div>
             </div>
@@ -204,26 +204,15 @@
                   <span class="field-hint">* 3D 폰트는 영문만 지원합니다. (최대 15자)</span>
                 </div>
 
-                <!-- Robot action (only shows when 'robot' is selected) -->
-                <div class="settings-field" id="field-robot-anim" style="display: none;">
-                  <label for="select-robot-anim">로봇 동작 선택</label>
-                  <select id="select-robot-anim" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); color: var(--color-text-main); padding: 8px 12px; border-radius: var(--radius-sm); outline: none; cursor: pointer;">
-                    <option value="Jump" selected>Jump (화면 밖 점프 - 강력 추천!)</option>
-                    <option value="Dance">Dance (춤추기)</option>
-                    <option value="Walking">Walk (앞으로 걷기)</option>
-                    <option value="Wave">Wave (손 흔들기)</option>
+                <!-- Shiba action (only shows when 'shiba' is selected) -->
+                <div class="settings-field" id="field-shiba-anim" style="display: none;">
+                  <label for="select-shiba-anim">시바견 동작 선택</label>
+                  <select id="select-shiba-anim" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); color: var(--color-text-main); padding: 8px 12px; border-radius: var(--radius-sm); outline: none; cursor: pointer;">
+                    <option value="Run" selected>Run (달리기 - 추천!)</option>
+                    <option value="Walk">Walk (걷기)</option>
+                    <option value="Survey">Survey (주변 둘러보기)</option>
                   </select>
-                  <span class="field-hint">* 점프가 멀티비전 밖으로 가장 많이 튀어나옵니다.</span>
-                </div>
-
-                <!-- Flamingo Count slider (only shows when 'flamingo' is selected) -->
-                <div class="settings-field" id="field-flamingo-count" style="display: none;">
-                  <div class="slider-label" style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted);">
-                    <label for="input-flamingo-count" style="color: var(--color-text-muted);">홍학 마리수</label>
-                    <span class="value-display" id="val-flamingo-count" style="color: var(--color-neon-cyan); font-weight: bold;">3마리</span>
-                  </div>
-                  <input type="range" id="input-flamingo-count" min="1" max="8" step="1" value="3" style="margin-top: 4px;">
-                  <span class="field-hint">* 1~8마리까지 무리를 생성하여 입체 비행합니다.</span>
+                  <span class="field-hint">* 도약하고 앞으로 튀어나오는 연출에 매우 좋습니다.</span>
                 </div>
 
                 <div class="settings-field">

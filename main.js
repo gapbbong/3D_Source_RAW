@@ -385,7 +385,7 @@ function setupUIEventListeners() {
     });
   });
 
-  // 6. Object Presets Selector (Text, Crystal, Torus, Robot, Flamingo)
+  // 6. Object Presets Selector (Text, T-Rex, Shark, Astronaut, Shiba)
   const objButtons = document.querySelectorAll('.btn-select[data-obj]');
   objButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -395,46 +395,28 @@ function setupUIEventListeners() {
       const preset = btn.getAttribute('data-obj');
       contentManager.updatePreset(preset);
       
-      // Hide or show text / robot / flamingo settings fields accordingly
+      // Hide or show text / shiba settings fields accordingly
       const textInput = document.getElementById('field-text-input');
-      const robotAnimSelectBox = document.getElementById('field-robot-anim');
-      const flamingoCountBox = document.getElementById('field-flamingo-count');
+      const shibaAnimSelectBox = document.getElementById('field-shiba-anim');
       
       if (preset === 'text') {
         textInput.style.display = 'flex';
-        robotAnimSelectBox.style.display = 'none';
-        flamingoCountBox.style.display = 'none';
-      } else if (preset === 'robot') {
+        shibaAnimSelectBox.style.display = 'none';
+      } else if (preset === 'shiba') {
         textInput.style.display = 'none';
-        robotAnimSelectBox.style.display = 'flex';
-        flamingoCountBox.style.display = 'none';
+        shibaAnimSelectBox.style.display = 'flex';
         // Sync select dropdown to active action
-        document.getElementById('select-robot-anim').value = contentManager.activeAnimationName;
-      } else if (preset === 'flamingo') {
-        textInput.style.display = 'none';
-        robotAnimSelectBox.style.display = 'none';
-        flamingoCountBox.style.display = 'flex';
-        // Sync slider value
-        document.getElementById('input-flamingo-count').value = contentManager.flamingoCount;
-        document.getElementById('val-flamingo-count').textContent = contentManager.flamingoCount + '마리';
+        document.getElementById('select-shiba-anim').value = contentManager.activeAnimationName;
       } else {
         textInput.style.display = 'none';
-        robotAnimSelectBox.style.display = 'none';
-        flamingoCountBox.style.display = 'none';
+        shibaAnimSelectBox.style.display = 'none';
       }
     });
   });
 
-  // Robot Animation Select Listener
-  document.getElementById('select-robot-anim').addEventListener('change', (e) => {
-    contentManager.updateRobotAnimation(e.target.value);
-  });
-
-  // Flamingo Count Slider Listener
-  document.getElementById('input-flamingo-count').addEventListener('input', (e) => {
-    const count = parseInt(e.target.value);
-    document.getElementById('val-flamingo-count').textContent = count + '마리';
-    contentManager.updateFlamingoCount(count);
+  // Shiba Animation Select Listener
+  document.getElementById('select-shiba-anim').addEventListener('change', (e) => {
+    contentManager.updateShibaAnimation(e.target.value);
   });
 
   // 7. Custom Text Input
