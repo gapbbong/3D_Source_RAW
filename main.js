@@ -395,21 +395,32 @@ function setupUIEventListeners() {
       const preset = btn.getAttribute('data-obj');
       contentManager.updatePreset(preset);
       
-      // Hide or show text / shiba settings fields accordingly
+      // Hide or show text / shiba / shark settings fields accordingly
       const textInput = document.getElementById('field-text-input');
       const shibaAnimSelectBox = document.getElementById('field-shiba-anim');
+      const sharkScaleField = document.getElementById('field-shark-scale');
       
       if (preset === 'text') {
         textInput.style.display = 'flex';
         shibaAnimSelectBox.style.display = 'none';
+        sharkScaleField.style.display = 'none';
       } else if (preset === 'shiba') {
         textInput.style.display = 'none';
         shibaAnimSelectBox.style.display = 'flex';
+        sharkScaleField.style.display = 'none';
         // Sync select dropdown to active action
         document.getElementById('select-shiba-anim').value = contentManager.activeAnimationName;
+      } else if (preset === 'shark') {
+        textInput.style.display = 'none';
+        shibaAnimSelectBox.style.display = 'none';
+        sharkScaleField.style.display = 'flex';
+        // Sync slider value
+        document.getElementById('input-shark-scale').value = contentManager.sharkScale;
+        document.getElementById('val-shark-scale').textContent = contentManager.sharkScale.toFixed(2) + 'x';
       } else {
         textInput.style.display = 'none';
         shibaAnimSelectBox.style.display = 'none';
+        sharkScaleField.style.display = 'none';
       }
     });
   });
@@ -417,6 +428,13 @@ function setupUIEventListeners() {
   // Shiba Animation Select Listener
   document.getElementById('select-shiba-anim').addEventListener('change', (e) => {
     contentManager.updateShibaAnimation(e.target.value);
+  });
+
+  // Shark Scale Slider Listener
+  document.getElementById('input-shark-scale').addEventListener('input', (e) => {
+    const scale = parseFloat(e.target.value);
+    document.getElementById('val-shark-scale').textContent = scale.toFixed(2) + 'x';
+    contentManager.updateSharkScale(scale);
   });
 
   // 7. Custom Text Input

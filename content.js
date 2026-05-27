@@ -62,6 +62,7 @@ export class SceneContentManager {
     this.neonColor = '#00f3ff';
     this.textValue = 'WELCOME';
     this.rotationSpeed = 1.0;
+    this.sharkScale = 0.45;
     
     // Animation properties
     this.mixer = null;
@@ -551,7 +552,7 @@ export class SceneContentManager {
           model.rotation.y = 0; // Face front
         } 
         else if (preset === 'shark') {
-          model.scale.set(0.45, 0.45, 0.45);
+          model.scale.set(this.sharkScale, this.sharkScale, this.sharkScale);
           model.position.set(0, 0, -this.boxDepth / 2);
           model.rotation.y = 0; // Swim forward
         }
@@ -610,6 +611,14 @@ export class SceneContentManager {
         const action = this.mixer.clipAction(clip);
         action.play();
       }
+    }
+  }
+
+  // Update shark scale dynamically
+  updateSharkScale(newScale) {
+    this.sharkScale = newScale;
+    if (this.activePreset === 'shark' && this.loadedModel) {
+      this.loadedModel.scale.set(newScale, newScale, newScale);
     }
   }
 
