@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Anamorphic Illusion Simulator & Generator</title>
+  <!-- Google Fonts for premium typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <span class="neon-dot"></span>
+        <h1>ANAMORPHIC <span>3D LAB</span></h1>
+        <span class="badge">Flat Screen 3D Simulator</span>
+      </div>
+      <div class="header-actions">
+        <button id="btn-fullscreen" class="btn btn-primary btn-glow">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+          멀티비전 전체화면 송출
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+      <!-- Left Viewport: The actual illusion rendered on the screen -->
+      <section class="viewport-container" id="panel-illusion">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="pulse-icon"></span>
+            <h3>멀티비전 출력 영상 (Illusion View)</h3>
+            <p>실제 학교 멀티비전에 표시할 화면입니다.</p>
+          </div>
+          <div class="card-actions">
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-bezels" checked>
+              <span class="slider"></span>
+              <span class="toggle-label">2x2 베젤 오버레이</span>
+            </label>
+          </div>
+        </div>
+        <div class="canvas-wrapper" id="illusion-wrapper">
+          <canvas id="illusion-canvas"></canvas>
+          <!-- 2x2 Multivision Bezel Overlay -->
+          <div class="multivision-bezels" id="bezel-overlay">
+            <div class="bezel-line bezel-v"></div>
+            <div class="bezel-line bezel-h"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Viewport: The 3D sandbox showing the viewer and screen -->
+      <section class="viewport-container" id="panel-sandbox">
+        <div class="card-header">
+          <div class="card-title">
+            <h3>3D 환경 시뮬레이터 (Sandbox View)</h3>
+            <p>스크린과 관람객의 물리적 위치 관계를 보여줍니다. 마우스로 회전해 보세요.</p>
+          </div>
+          <div class="card-actions">
+            <button id="btn-reset-sandbox" class="btn btn-secondary btn-sm">카메라 리셋</button>
+          </div>
+        </div>
+        <div class="canvas-wrapper" id="sandbox-wrapper">
+          <canvas id="sandbox-canvas"></canvas>
+          <div class="legend">
+            <div class="legend-item"><span class="color-dot dot-screen"></span>스크린 평면</div>
+            <div class="legend-item"><span class="color-dot dot-viewer"></span>관람객 (시점)</div>
+            <div class="legend-item"><span class="color-dot dot-frustum"></span>시야 영역 (Frustum)</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer Controls -->
+    <footer class="app-dashboard">
+      <div class="dashboard-tabs">
+        <button class="tab-btn active" data-tab="tab-viewer">시점 & 조작 설정</button>
+        <button class="tab-btn" data-tab="tab-content">3D 콘텐츠 디자인</button>
+        <button class="tab-btn" data-tab="tab-multivision">멀티비전 규격</button>
+        <button class="tab-btn" data-tab="tab-howitworks">작동 원리 교육</button>
+      </div>
+
+      <div class="dashboard-content">
+        <!-- TAB 1: Viewer & Controls -->
+        <div class="tab-panel active" id="tab-viewer">
+          <div class="control-row">
+            <div class="control-group-box">
+              <h4>조작 모드 선택</h4>
+              <div class="radio-tile-group">
+                <label class="radio-tile-card">
+                  <input type="radio" name="control-mode" value="auto-walk" checked>
+                  <div class="card-content">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                    <span>자동 보행 (시연용)</span>
+                  </div>
+                </label>
+                <label class="radio-tile-card">
+                  <input type="radio" name="control-mode" value="mouse-track">
+                  <div class="card-content">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Zm0 19v-2m-8-6a8 8 0 0 0 16 0"/></svg>
+                    <span>마우스 반응</span>
+                  </div>
+                </label>
+                <label class="radio-tile-card">
+                  <input type="radio" name="control-mode" value="fixed">
+                  <div class="card-content">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span>고정 시점 (설치용)</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="control-group-box flex-grow">
+              <h4>시점 좌표 실시간 조정 <span class="unit">(단위: 미터)</span></h4>
+              <div class="sliders-grid">
+                <div class="slider-container">
+                  <div class="slider-label">
+                    <span>가로 위치 (X)</span>
+                    <span class="value-display" id="val-eye-x">0.0m</span>
+                  </div>
+                  <input type="range" id="input-eye-x" min="-4" max="4" step="0.05" value="0">
+                  <div class="slider-limits"><span>좌측</span><span>중앙</span><span>우측</span></div>
+                </div>
+                <div class="slider-container">
+                  <div class="slider-label">
+                    <span>높이 위치 (Y)</span>
+                    <span class="value-display" id="val-eye-y">0.0m</span>
+                  </div>
+                  <input type="range" id="input-eye-y" min="-2" max="2" step="0.05" value="0">
+                  <div class="slider-limits"><span>낮음</span><span>중앙</span><span>높음</span></div>
+                </div>
+                <div class="slider-container">
+                  <div class="slider-label">
+                    <span>관람 거리 (Z)</span>
+                    <span class="value-display" id="val-eye-z">4.0m</span>
+                  </div>
+                  <input type="range" id="input-eye-z" min="1.5" max="8" step="0.05" value="4">
+                  <div class="slider-limits"><span>가까움 (1.5m)</span><span>멂 (8.0m)</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group-box">
+              <h4>자동 보행 스피드</h4>
+              <div class="slider-container" style="margin-top: 10px;">
+                <div class="slider-label">
+                  <span>속도 설정</span>
+                  <span class="value-display" id="val-walk-speed">1.0x</span>
+                </div>
+                <input type="range" id="input-walk-speed" min="0.1" max="3" step="0.1" value="1">
+              </div>
+              <div class="preset-buttons">
+                <button class="btn btn-secondary btn-xs btn-preset-pos" data-pos="0,0,4">시점 중앙 고정</button>
+                <button class="btn btn-secondary btn-xs btn-preset-pos" data-pos="2,1,3">우상단 시점</button>
+                <button class="btn btn-secondary btn-xs btn-preset-pos" data-pos="-2,-1,3.5">좌하단 시점</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: 3D Content Design -->
+        <div class="tab-panel" id="tab-content">
+          <div class="control-row">
+            <div class="control-group-box">
+              <h4>3D 콘텐츠 오브젝트</h4>
+              <div class="object-select-group">
+                <button class="btn btn-select active" data-obj="text">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+                  입체 네온 텍스트
+                </button>
+                <button class="btn btn-select" data-obj="crystal">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                  회전하는 크리스탈
+                </button>
+                <button class="btn btn-select" data-obj="torus">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  토러스 꼬임 매듭
+                </button>
+                <button class="btn btn-select" data-obj="robot">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 15h.01M16 15h.01"/></svg>
+                  뛰어오르는 로봇 (캐릭터)
+                </button>
+                <button class="btn btn-select" data-obj="flamingo">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                  날아오는 홍학 (동물)
+                </button>
+              </div>
+            </div>
+
+            <div class="control-group-box flex-grow">
+              <h4>콘텐츠 상세 설정</h4>
+              <div class="settings-grid">
+                <!-- Text input (only shows when 'text' is selected) -->
+                <div class="settings-field" id="field-text-input">
+                  <label for="input-text">표시할 3D 텍스트</label>
+                  <input type="text" id="input-text" value="WELCOME" maxlength="15" placeholder="영문 텍스트 입력">
+                  <span class="field-hint">* 3D 폰트는 영문만 지원합니다. (최대 15자)</span>
+                </div>
+
+                <!-- Robot action (only shows when 'robot' is selected) -->
+                <div class="settings-field" id="field-robot-anim" style="display: none;">
+                  <label for="select-robot-anim">로봇 동작 선택</label>
+                  <select id="select-robot-anim" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); color: var(--color-text-main); padding: 8px 12px; border-radius: var(--radius-sm); outline: none; cursor: pointer;">
+                    <option value="Jump" selected>Jump (화면 밖 점프 - 강력 추천!)</option>
+                    <option value="Dance">Dance (춤추기)</option>
+                    <option value="Walking">Walk (앞으로 걷기)</option>
+                    <option value="Wave">Wave (손 흔들기)</option>
+                  </select>
+                  <span class="field-hint">* 점프가 멀티비전 밖으로 가장 많이 튀어나옵니다.</span>
+                </div>
+
+                <!-- Flamingo Count slider (only shows when 'flamingo' is selected) -->
+                <div class="settings-field" id="field-flamingo-count" style="display: none;">
+                  <div class="slider-label" style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted);">
+                    <label for="input-flamingo-count" style="color: var(--color-text-muted);">홍학 마리수</label>
+                    <span class="value-display" id="val-flamingo-count" style="color: var(--color-neon-cyan); font-weight: bold;">3마리</span>
+                  </div>
+                  <input type="range" id="input-flamingo-count" min="1" max="8" step="1" value="3" style="margin-top: 4px;">
+                  <span class="field-hint">* 1~8마리까지 무리를 생성하여 입체 비행합니다.</span>
+                </div>
+
+                <div class="settings-field">
+                  <label for="input-color">주요 네온 컬러</label>
+                  <div class="color-picker-wrapper">
+                    <input type="color" id="input-color" value="#00f3ff">
+                    <div class="preset-colors">
+                      <span class="color-swatch" style="background: #00f3ff;" data-color="#00f3ff"></span>
+                      <span class="color-swatch" style="background: #bd00ff;" data-color="#bd00ff"></span>
+                      <span class="color-swatch" style="background: #39ff14;" data-color="#39ff14"></span>
+                      <span class="color-swatch" style="background: #ff0055;" data-color="#ff0055"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="settings-field">
+                  <label for="input-rotation-speed">오브젝트 동작 속도</label>
+                  <input type="range" id="input-rotation-speed" min="0" max="3" step="0.1" value="1">
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group-box">
+              <h4>가상 3D 체임버(깊이감) 박스</h4>
+              <div class="sliders-grid vertical">
+                <div class="slider-container">
+                  <div class="slider-label">
+                    <span>박스 깊이 (Depth)</span>
+                    <span class="value-display" id="val-box-depth">2.0m</span>
+                  </div>
+                  <input type="range" id="input-box-depth" min="0.5" max="4" step="0.1" value="2.0">
+                </div>
+                <div class="slider-container">
+                  <div class="slider-label">
+                    <span>테두리 두께 (Border)</span>
+                    <span class="value-display" id="val-border-size">0.15m</span>
+                  </div>
+                  <input type="range" id="input-border-size" min="0.05" max="0.4" step="0.01" value="0.15">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: Multivision Config -->
+        <div class="tab-panel" id="tab-multivision">
+          <div class="control-row">
+            <div class="control-group-box">
+              <h4>멀티비전 구성 (Grid)</h4>
+              <div class="grid-select-group">
+                <button class="btn btn-select active" data-grid="2x2">2 x 2 배열</button>
+                <button class="btn btn-select" data-grid="3x3">3 x 3 배열</button>
+                <button class="btn btn-select" data-grid="1x1">단일 화면 (1x1)</button>
+              </div>
+            </div>
+
+            <div class="control-group-box flex-grow">
+              <h4>물리적 규격 설정</h4>
+              <div class="sliders-grid">
+                <div class="slider-container">
+                  <div class="slider-label">
+                    <span>가로 너비 (W)</span>
+                    <span class="value-display" id="val-screen-w">2.9m</span>
+                  </div>
+                  <input type="range" id="input-screen-w" min="1.0" max="6.0" step="0.1" value="2.9">
+                  <span class="field-hint">65인치 2대 가로: 약 2.9m</span>
+                </div>
+                <div class="slider-container">
+                  <div class="slider-label">
+                    <span>세로 높이 (H)</span>
+                    <span class="value-display" id="val-screen-h">1.6m</span>
+                  </div>
+                  <input type="range" id="input-screen-h" min="0.5" max="4.0" step="0.1" value="1.6">
+                  <span class="field-hint">65인치 2대 세로: 약 1.6m (16:9 비율 유지)</span>
+                </div>
+                <div class="slider-container">
+                  <div class="slider-label">
+                    <span>베젤 두께</span>
+                    <span class="value-display" id="val-bezel-size">6px</span>
+                  </div>
+                  <input type="range" id="input-bezel-size" min="1" max="25" step="1" value="6">
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group-box">
+              <h4>실제 설치 가이드</h4>
+              <div class="install-guide-text">
+                <p><strong>아나모픽 효과 극대화 팁:</strong></p>
+                <ul>
+                  <li>관람객이 통과하는 메인 복도/문 앞 등 주요 시선이 머무는 지점의 좌표를 시점 Z와 X에 셋팅하세요.</li>
+                  <li>멀티비전 주변에 가상의 테두리 상자를 두껍게 그릴수록(보더 두께 조절), 3D 오브젝트가 밖으로 돌출되는 착시가 강력해집니다!</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: Educational Guide (How It Works) -->
+        <div class="tab-panel" id="tab-howitworks">
+          <div class="education-content">
+            <div class="edu-card">
+              <div class="edu-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg>
+              </div>
+              <div class="edu-text">
+                <h4>왜 평면 멀티비전에서 3D로 보일까요?</h4>
+                <p>이 효과는 <strong>아나모픽 왜곡(Anamorphic Projection)</strong>과 <strong>강제 원근법(Forced Perspective)</strong>을 이용합니다. 관람객이 특정 위치(스윗 스팟)에 서서 화면을 볼 때, 화면 속에 깊이감이 있는 3D 가상 방(Chamber)이 실제 벽 안으로 파여 있는 것처럼 보이도록 계산하여 스크린 평면에 투영합니다. 그리고 그 방 안의 물체가 스크린 밖으로 튀어나오는 왜곡을 주면 뇌는 스크린 경계를 뚫고 나온 입체물로 지각하게 됩니다.</p>
+              </div>
+            </div>
+
+            <div class="edu-card">
+              <div class="edu-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M2 12h3m14 0h3m-9-9v3m0 14v3"/></svg>
+              </div>
+              <div class="edu-text">
+                <h4>오프액시스 투영(Off-Axis Projection)의 중요성</h4>
+                <p>일반 3D 렌더링은 카메라가 바라보는 중앙을 대칭적으로 렌더링합니다. 하지만 관람객이 화면 오른쪽에 서서 왼쪽을 바라본다면, 원근 투영법의 중심이 찌그러져야(비대칭) 실제 창문을 통해 방을 들여다보는 것과 기하학적으로 일치하게 됩니다. 본 시뮬레이터는 관람객의 $X, Y, Z$ 위치 변화에 따라 실시간으로 카메라의 <strong>비대칭 절두체(Asymmetric Frustum)</strong> 행렬을 재계산하여 이 기하학적 일치도를 완벽하게 맞춥니다.</p>
+              </div>
+            </div>
+
+            <div class="edu-card">
+              <div class="edu-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="edu-text">
+                <h4>'테두리(Frame)'라는 강력한 시각적 속임수</h4>
+                <p>사람의 뇌는 물리적인 스크린 테두리를 "세상의 경계"로 인지합니다. 이 스크린 안쪽에 가상의 '검은색 보더 박스'를 3D로 모델링해두고, 물체가 이 가상 테두리 앞(스크린 평면 바깥 영역)으로 나오게 렌더링하면, 뇌는 물리적 화면 밖으로 물체가 돌출되었다고 착각합니다. 이를 <strong>Out-of-Bounds(OOB)</strong> 기법이라고 하며, 평면 스크린에서 3D 입체 효과를 만드는 가장 핵심적인 디자인 요소입니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Fullscreen Exit Overlay (auto-hides) -->
+  <div class="fullscreen-overlay" id="fs-overlay">
+    <div class="overlay-card">
+      <h3>전체화면 디스플레이 송출 모드</h3>
+      <p>실제 스크린에 꽉 차게 띄운 후 관람객 이동 동선에 맞춰 사용하세요.</p>
+      <div class="overlay-shortcuts">
+        <kbd>ESC</kbd> 누르면 시뮬레이터로 돌아갑니다.
+      </div>
+      <button id="btn-close-overlay" class="btn btn-primary">안내창 닫기</button>
+    </div>
+  </div>
+
+  <!-- Main JavaScript File -->
+  <script type="module" src="/main.js"></script>
+</body>
+</html>
