@@ -375,6 +375,17 @@ export class SceneContentManager {
     this.loadedModel = null;
     this.modelAnimations = [];
     
+    // Clear procedural variables
+    this.proceduralGroup = null;
+    this.proceduralHead = null;
+    this.proceduralLegs = [];
+    this.proceduralArmL = null;
+    this.proceduralArmR = null;
+    this.proceduralBlowpipe = null;
+    this.proceduralBraidsL = [];
+    this.proceduralBraidsR = [];
+    this.proceduralFishbones = null;
+    
     while(this.objectGroup.children.length > 0) {
       const obj = this.objectGroup.children[0];
       
@@ -505,6 +516,8 @@ export class SceneContentManager {
     // Preset selections
     if (this.activePreset === 'trex' || this.activePreset === 'shark' || this.activePreset === 'astronaut' || this.activePreset === 'shiba') {
       this.loadGLTFModel();
+    } else if (['creeper', 'steve', 'chunsik', 'teemo', 'jinx'].includes(this.activePreset)) {
+      this.buildProceduralPreset();
     }
   }
 
@@ -622,6 +635,454 @@ export class SceneContentManager {
     }
   }
 
+  // Update shark scale dynamically
+  updateSharkScale(newScale) {
+    this.sharkScale = newScale;
+    if (this.activePreset === 'shark' && this.loadedModel) {
+      this.loadedModel.scale.set(newScale, newScale, newScale);
+    }
+  }
+
+  // Build procedural 3D model preset
+  buildProceduralPreset() {
+    this.clearObjects();
+    
+    this.proceduralGroup = new THREE.Group();
+    const posY = -this.screenH / 2 + this.borderSize;
+    this.proceduralGroup.position.set(0, posY, -this.boxDepth / 2);
+    
+    const preset = this.activePreset;
+    
+    if (preset === 'creeper') {
+      this.createCreeperMesh();
+    } else if (preset === 'steve') {
+      this.createSteveMesh();
+    } else if (preset === 'chunsik') {
+      this.createChunsikMesh();
+    } else if (preset === 'teemo') {
+      this.createTeemoMesh();
+    } else if (preset === 'jinx') {
+      this.createJinxMesh();
+    }
+    
+    this.objectGroup.add(this.proceduralGroup);
+  }
+
+  createCreeperMesh() {
+    const greenMat = new THREE.MeshStandardMaterial({ color: 0x388e3c, roughness: 0.8 });
+    const darkGreenMat = new THREE.MeshStandardMaterial({ color: 0x1b5e20, roughness: 0.8 });
+    const blackMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+    
+    const headGeom = new THREE.BoxGeometry(0.35, 0.35, 0.35);
+    const head = new THREE.Mesh(headGeom, greenMat);
+    head.position.y = 0.65;
+    head.castShadow = true;
+    this.proceduralGroup.add(head);
+    this.proceduralHead = head;
+    
+    const eyeGeom = new THREE.BoxGeometry(0.08, 0.08, 0.02);
+    const leftEye = new THREE.Mesh(eyeGeom, blackMat);
+    leftEye.position.set(-0.09, 0.05, 0.176);
+    head.add(leftEye);
+    
+    const rightEye = new THREE.Mesh(eyeGeom, blackMat);
+    rightEye.position.set(0.09, 0.05, 0.176);
+    head.add(rightEye);
+    
+    const mouthGeom = new THREE.BoxGeometry(0.14, 0.16, 0.02);
+    const mouth = new THREE.Mesh(mouthGeom, blackMat);
+    mouth.position.set(0, -0.08, 0.176);
+    head.add(mouth);
+    
+    const bodyGeom = new THREE.BoxGeometry(0.26, 0.5, 0.18);
+    const body = new THREE.Mesh(bodyGeom, darkGreenMat);
+    body.position.y = 0.25;
+    body.castShadow = true;
+    this.proceduralGroup.add(body);
+    
+    const legGeom = new THREE.BoxGeometry(0.12, 0.24, 0.16);
+    
+    const legFL = new THREE.Mesh(legGeom, greenMat);
+    legFL.position.set(-0.09, 0.12, 0.12);
+    legFL.castShadow = true;
+    this.proceduralGroup.add(legFL);
+    
+    const legFR = new THREE.Mesh(legGeom, greenMat);
+    legFR.position.set(0.09, 0.12, 0.12);
+    legFR.castShadow = true;
+    this.proceduralGroup.add(legFR);
+    
+    const legBL = new THREE.Mesh(legGeom, greenMat);
+    legBL.position.set(-0.09, 0.12, -0.12);
+    legBL.castShadow = true;
+    this.proceduralGroup.add(legBL);
+    
+    const legBR = new THREE.Mesh(legGeom, greenMat);
+    legBR.position.set(0.09, 0.12, -0.12);
+    legBR.castShadow = true;
+    this.proceduralGroup.add(legBR);
+    
+    this.proceduralLegs = [legFL, legFR, legBL, legBR];
+  }
+
+  createSteveMesh() {
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xdbad88, roughness: 0.7 });
+    const hairMat = new THREE.MeshStandardMaterial({ color: 0x482b13, roughness: 0.8 });
+    const shirtMat = new THREE.MeshStandardMaterial({ color: 0x00bcd4, roughness: 0.6 });
+    const pantsMat = new THREE.MeshStandardMaterial({ color: 0x3f51b5, roughness: 0.6 });
+    const steelMat = new THREE.MeshStandardMaterial({ color: 0xb0bec5, metalness: 0.8, roughness: 0.2 });
+    
+    const headGeom = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+    const head = new THREE.Mesh(headGeom, skinMat);
+    head.position.y = 0.68;
+    head.castShadow = true;
+    this.proceduralGroup.add(head);
+    this.proceduralHead = head;
+    
+    const hairGeom = new THREE.BoxGeometry(0.32, 0.1, 0.32);
+    const hair = new THREE.Mesh(hairGeom, hairMat);
+    hair.position.y = 0.11;
+    head.add(hair);
+    
+    const bodyGeom = new THREE.BoxGeometry(0.3, 0.44, 0.16);
+    const body = new THREE.Mesh(bodyGeom, shirtMat);
+    body.position.y = 0.32;
+    body.castShadow = true;
+    this.proceduralGroup.add(body);
+    
+    const legGeom = new THREE.BoxGeometry(0.14, 0.38, 0.16);
+    const legL = new THREE.Mesh(legGeom, pantsMat);
+    legL.position.set(-0.08, 0.19, 0);
+    legL.castShadow = true;
+    this.proceduralGroup.add(legL);
+    
+    const legR = new THREE.Mesh(legGeom, pantsMat);
+    legR.position.set(0.08, 0.19, 0);
+    legR.castShadow = true;
+    this.proceduralGroup.add(legR);
+    
+    this.proceduralLegs = [legL, legR];
+    
+    const armGeom = new THREE.BoxGeometry(0.13, 0.44, 0.16);
+    const armL = new THREE.Mesh(armGeom, skinMat);
+    armL.position.set(-0.22, 0.32, 0);
+    armL.castShadow = true;
+    this.proceduralGroup.add(armL);
+    this.proceduralArmL = armL;
+    
+    const armR = new THREE.Mesh(armGeom, skinMat);
+    armR.position.set(0.22, 0.32, 0);
+    armR.castShadow = true;
+    this.proceduralGroup.add(armR);
+    this.proceduralArmR = armR;
+    
+    const swordGroup = new THREE.Group();
+    
+    const bladeGeom = new THREE.BoxGeometry(0.04, 0.38, 0.04);
+    const blade = new THREE.Mesh(bladeGeom, steelMat);
+    blade.position.y = 0.22;
+    blade.castShadow = true;
+    swordGroup.add(blade);
+    
+    const guardGeom = new THREE.BoxGeometry(0.14, 0.04, 0.04);
+    const guard = new THREE.Mesh(guardGeom, hairMat);
+    guard.position.y = 0.04;
+    swordGroup.add(guard);
+    
+    swordGroup.position.set(0, -0.15, 0.1);
+    swordGroup.rotation.x = -Math.PI / 3;
+    armR.add(swordGroup);
+  }
+
+  createChunsikMesh() {
+    const yellowMat = new THREE.MeshStandardMaterial({ color: 0xffca28, roughness: 0.6 });
+    const brownMat = new THREE.MeshStandardMaterial({ color: 0x795548, roughness: 0.7 });
+    const pinkMat = new THREE.MeshStandardMaterial({ color: 0xff8a80, roughness: 0.6 });
+    const blackMat = new THREE.MeshStandardMaterial({ color: 0x212121, roughness: 0.9 });
+    
+    const headGeom = new THREE.SphereGeometry(0.2, 32, 32);
+    const head = new THREE.Mesh(headGeom, yellowMat);
+    head.scale.set(1.15, 0.95, 1.0);
+    head.position.y = 0.58;
+    head.castShadow = true;
+    this.proceduralGroup.add(head);
+    this.proceduralHead = head;
+    
+    const earGeom = new THREE.ConeGeometry(0.06, 0.09, 4);
+    earGeom.rotateY(Math.PI / 4);
+    
+    const earL = new THREE.Mesh(earGeom, brownMat);
+    earL.position.set(-0.13, 0.14, 0.05);
+    earL.rotation.z = 0.25;
+    head.add(earL);
+    
+    const earR = new THREE.Mesh(earGeom, brownMat);
+    earR.position.set(0.13, 0.14, 0.05);
+    earR.rotation.z = -0.25;
+    head.add(earR);
+    
+    const eyeGeom = new THREE.SphereGeometry(0.016, 8, 8);
+    const eyeL = new THREE.Mesh(eyeGeom, blackMat);
+    eyeL.position.set(-0.06, 0.01, 0.17);
+    head.add(eyeL);
+    
+    const eyeR = new THREE.Mesh(eyeGeom, blackMat);
+    eyeR.position.set(0.06, 0.01, 0.17);
+    head.add(eyeR);
+    
+    const cheekGeom = new THREE.SphereGeometry(0.035, 8, 8);
+    cheekGeom.scale(1.0, 0.5, 1.0);
+    
+    const cheekL = new THREE.Mesh(cheekGeom, pinkMat);
+    cheekL.position.set(-0.1, -0.06, 0.16);
+    head.add(cheekL);
+    
+    const cheekR = new THREE.Mesh(cheekGeom, pinkMat);
+    cheekR.position.set(0.1, -0.06, 0.16);
+    head.add(cheekR);
+    
+    const mouthGroup = new THREE.Group();
+    const mouthLineGeom = new THREE.BoxGeometry(0.035, 0.01, 0.01);
+    const mouthL = new THREE.Mesh(mouthLineGeom, blackMat);
+    mouthL.rotation.z = -0.3;
+    mouthL.position.x = -0.015;
+    const mouthR = new THREE.Mesh(mouthLineGeom, blackMat);
+    mouthR.rotation.z = 0.3;
+    mouthR.position.x = 0.015;
+    mouthGroup.add(mouthL, mouthR);
+    mouthGroup.position.set(0, -0.04, 0.185);
+    head.add(mouthGroup);
+    
+    const bodyGeom = new THREE.SphereGeometry(0.18, 32, 32);
+    const body = new THREE.Mesh(bodyGeom, yellowMat);
+    body.position.y = 0.28;
+    body.scale.set(1.0, 1.15, 1.0);
+    body.castShadow = true;
+    this.proceduralGroup.add(body);
+    
+    const limbGeom = new THREE.SphereGeometry(0.06, 16, 16);
+    
+    const armL = new THREE.Mesh(limbGeom, yellowMat);
+    armL.position.set(-0.19, 0.32, 0.05);
+    this.proceduralGroup.add(armL);
+    this.proceduralArmL = armL;
+    
+    const armR = new THREE.Mesh(limbGeom, yellowMat);
+    armR.position.set(0.19, 0.32, 0.05);
+    this.proceduralGroup.add(armR);
+    this.proceduralArmR = armR;
+    
+    const legL = new THREE.Mesh(limbGeom, yellowMat);
+    legL.position.set(-0.11, 0.11, 0.05);
+    this.proceduralGroup.add(legL);
+    
+    const legR = new THREE.Mesh(limbGeom, yellowMat);
+    legR.position.set(0.11, 0.11, 0.05);
+    this.proceduralGroup.add(legR);
+    
+    this.proceduralLegs = [legL, legR];
+  }
+
+  createTeemoMesh() {
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xffe0b2, roughness: 0.6 });
+    const greenHatMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.7 });
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.8 });
+    const redMat = new THREE.MeshStandardMaterial({ color: 0xd32f2f, roughness: 0.6 });
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd54f, metalness: 0.7, roughness: 0.2 });
+    
+    const headGeom = new THREE.SphereGeometry(0.19, 32, 32);
+    const head = new THREE.Mesh(headGeom, skinMat);
+    head.position.y = 0.52;
+    head.castShadow = true;
+    this.proceduralGroup.add(head);
+    this.proceduralHead = head;
+    
+    const hatGeom = new THREE.ConeGeometry(0.23, 0.14, 16);
+    const hat = new THREE.Mesh(hatGeom, greenHatMat);
+    hat.position.y = 0.12;
+    head.add(hat);
+    
+    const featherGeom = new THREE.BoxGeometry(0.015, 0.09, 0.03);
+    const feather = new THREE.Mesh(featherGeom, redMat);
+    feather.position.set(0, 0.11, -0.05);
+    feather.rotation.x = -0.4;
+    hat.add(feather);
+    
+    const goggleGeom = new THREE.SphereGeometry(0.045, 16, 16);
+    goggleGeom.scale(1.0, 1.0, 0.3);
+    
+    const goggleL = new THREE.Mesh(goggleGeom, darkMat);
+    goggleL.position.set(-0.08, 0.04, 0.18);
+    goggleL.rotation.y = 0.2;
+    head.add(goggleL);
+    
+    const goggleR = new THREE.Mesh(goggleGeom, darkMat);
+    goggleR.position.set(0.08, 0.04, 0.18);
+    goggleR.rotation.y = -0.2;
+    head.add(goggleR);
+    
+    const strapGeom = new THREE.BoxGeometry(0.36, 0.02, 0.36);
+    const strap = new THREE.Mesh(strapGeom, darkMat);
+    strap.position.y = 0.04;
+    head.add(strap);
+    
+    const eyeGeom = new THREE.BoxGeometry(0.04, 0.01, 0.01);
+    const eyeL = new THREE.Mesh(eyeGeom, darkMat);
+    eyeL.position.set(-0.06, -0.02, 0.165);
+    eyeL.rotation.z = -0.15;
+    head.add(eyeL);
+    
+    const eyeR = new THREE.Mesh(eyeGeom, darkMat);
+    eyeR.position.set(0.06, -0.02, 0.165);
+    eyeR.rotation.z = 0.15;
+    head.add(eyeR);
+    
+    const bodyGeom = new THREE.SphereGeometry(0.16, 32, 32);
+    const body = new THREE.Mesh(bodyGeom, darkMat);
+    body.position.y = 0.26;
+    body.scale.set(1.0, 1.1, 1.0);
+    body.castShadow = true;
+    this.proceduralGroup.add(body);
+    
+    const pipeGeom = new THREE.CylinderGeometry(0.015, 0.015, 0.22, 8);
+    pipeGeom.rotateX(Math.PI / 2);
+    const pipe = new THREE.Mesh(pipeGeom, goldMat);
+    pipe.position.set(0.12, 0.35, 0.18);
+    pipe.rotation.y = -0.4;
+    pipe.rotation.x = -0.2;
+    pipe.castShadow = true;
+    this.proceduralGroup.add(pipe);
+    this.proceduralBlowpipe = pipe;
+    
+    const limbGeom = new THREE.SphereGeometry(0.05, 16, 16);
+    const armL = new THREE.Mesh(limbGeom, skinMat);
+    armL.position.set(-0.17, 0.29, 0.05);
+    this.proceduralGroup.add(armL);
+    
+    const armR = new THREE.Mesh(limbGeom, skinMat);
+    armR.position.set(0.17, 0.29, 0.05);
+    this.proceduralGroup.add(armR);
+    this.proceduralArmR = armR;
+    
+    const legL = new THREE.Mesh(limbGeom, darkMat);
+    legL.position.set(-0.09, 0.1, 0.04);
+    this.proceduralGroup.add(legL);
+    
+    const legR = new THREE.Mesh(limbGeom, darkMat);
+    legR.position.set(0.09, 0.1, 0.04);
+    this.proceduralGroup.add(legR);
+    
+    this.proceduralLegs = [legL, legR];
+  }
+
+  createJinxMesh() {
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xfff0e6, roughness: 0.6 });
+    const hairMat = new THREE.MeshStandardMaterial({ color: 0x00b0ff, roughness: 0.6 });
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x263238, roughness: 0.8 });
+    const steelMat = new THREE.MeshStandardMaterial({ color: 0x78909c, metalness: 0.8, roughness: 0.2 });
+    const pinkMat = new THREE.MeshStandardMaterial({ color: 0xe91e63, roughness: 0.5 });
+    
+    const headGeom = new THREE.SphereGeometry(0.17, 32, 32);
+    const head = new THREE.Mesh(headGeom, skinMat);
+    head.position.y = 0.58;
+    head.castShadow = true;
+    this.proceduralGroup.add(head);
+    this.proceduralHead = head;
+    
+    const eyeGeom = new THREE.SphereGeometry(0.016, 8, 8);
+    const eyeL = new THREE.Mesh(eyeGeom, pinkMat);
+    eyeL.position.set(-0.055, 0.01, 0.145);
+    head.add(eyeL);
+    
+    const eyeR = new THREE.Mesh(eyeGeom, pinkMat);
+    eyeR.position.set(0.055, 0.01, 0.145);
+    head.add(eyeR);
+    
+    const hairCapGeom = new THREE.SphereGeometry(0.18, 16, 16);
+    hairCapGeom.scale(1.02, 1.02, 1.02);
+    const hairCap = new THREE.Mesh(hairCapGeom, hairMat);
+    hairCap.position.set(0, 0.02, -0.01);
+    head.add(hairCap);
+    
+    this.proceduralBraidsL = [];
+    this.proceduralBraidsR = [];
+    
+    let lastBraidL = head;
+    let lastBraidR = head;
+    
+    const braidSegmentGeom = new THREE.SphereGeometry(0.038, 8, 8);
+    
+    for (let i = 0; i < 8; i++) {
+      const segment = new THREE.Mesh(braidSegmentGeom, hairMat);
+      segment.castShadow = true;
+      if (i === 0) {
+        segment.position.set(-0.14, -0.06, -0.05);
+      } else {
+        segment.position.set(0, -0.07, -0.01);
+      }
+      lastBraidL.add(segment);
+      this.proceduralBraidsL.push(segment);
+      lastBraidL = segment;
+    }
+    
+    for (let i = 0; i < 8; i++) {
+      const segment = new THREE.Mesh(braidSegmentGeom, hairMat);
+      segment.castShadow = true;
+      if (i === 0) {
+        segment.position.set(0.14, -0.06, -0.05);
+      } else {
+        segment.position.set(0, -0.07, -0.01);
+      }
+      lastBraidR.add(segment);
+      this.proceduralBraidsR.push(segment);
+      lastBraidR = segment;
+    }
+    
+    const bodyGeom = new THREE.CylinderGeometry(0.09, 0.07, 0.35, 16);
+    const body = new THREE.Mesh(bodyGeom, darkMat);
+    body.position.y = 0.32;
+    body.castShadow = true;
+    this.proceduralGroup.add(body);
+    
+    const fishbonesGroup = new THREE.Group();
+    
+    const tubeGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.32, 12);
+    tubeGeom.rotateX(Math.PI / 2);
+    const mainTube = new THREE.Mesh(tubeGeom, steelMat);
+    mainTube.castShadow = true;
+    fishbonesGroup.add(mainTube);
+    
+    const jawGeom = new THREE.ConeGeometry(0.082, 0.12, 12);
+    jawGeom.rotateX(Math.PI / 2);
+    const jaw = new THREE.Mesh(jawGeom, darkMat);
+    jaw.position.set(0, 0.02, 0.18);
+    fishbonesGroup.add(jaw);
+    
+    fishbonesGroup.position.set(0.18, 0.44, 0.1);
+    fishbonesGroup.rotation.y = -0.2;
+    this.proceduralGroup.add(fishbonesGroup);
+    this.proceduralFishbones = fishbonesGroup;
+    
+    const limbGeom = new THREE.SphereGeometry(0.045, 16, 16);
+    const armL = new THREE.Mesh(limbGeom, skinMat);
+    armL.position.set(-0.15, 0.35, 0.02);
+    this.proceduralGroup.add(armL);
+    
+    const armR = new THREE.Mesh(limbGeom, skinMat);
+    armR.position.set(0.15, 0.35, 0.02);
+    this.proceduralGroup.add(armR);
+    
+    const legL = new THREE.Mesh(limbGeom, darkMat);
+    legL.position.set(-0.07, 0.1, 0.02);
+    this.proceduralGroup.add(legL);
+    
+    const legR = new THREE.Mesh(limbGeom, darkMat);
+    legR.position.set(0.07, 0.1, 0.02);
+    this.proceduralGroup.add(legR);
+    
+    this.proceduralLegs = [legL, legR];
+  }
+
   // Update object properties dynamically
   updateText(newText) {
     this.textValue = newText.toUpperCase();
@@ -683,6 +1144,10 @@ export class SceneContentManager {
       else if (preset === 'shark' || preset === 'astronaut') {
         this.loadedModel.position.set(0, 0, -depth / 2);
       }
+    }
+    else if (this.proceduralGroup) {
+      const posY = -h / 2 + border;
+      this.proceduralGroup.position.set(0, posY, -depth / 2);
     }
     else if (this.objectGroup.children[0]) {
       this.objectGroup.children.forEach(obj => {
@@ -767,6 +1232,160 @@ export class SceneContentManager {
         this.loadedModel.rotation.y = Math.PI + Math.sin(time * 1.6) * 0.2;
         this.loadedModel.rotation.x = -Math.sin(leapCycle * Math.PI) * 0.3;
         this.loadedModel.rotation.z = Math.cos(time * 2.0) * 0.1;
+      }
+      else if (this.proceduralGroup) {
+        const preset = this.activePreset;
+        const D = this.boxDepth;
+        
+        // Creeper Animation
+        if (preset === 'creeper') {
+          const cycle = (time * 0.16) % 1.0;
+          const startZ = -D * 0.8;
+          const endZ = 1.1;
+          
+          this.proceduralGroup.position.z = startZ + cycle * (endZ - startZ);
+          this.proceduralGroup.position.x = Math.sin(time * 0.8) * (this.screenW * 0.1);
+          
+          if (this.proceduralLegs && this.proceduralLegs.length === 4) {
+            const swing = Math.sin(time * 10 * this.rotationSpeed) * 0.45;
+            this.proceduralLegs[0].rotation.x = swing;
+            this.proceduralLegs[1].rotation.x = -swing;
+            this.proceduralLegs[2].rotation.x = -swing;
+            this.proceduralLegs[3].rotation.x = swing;
+          }
+          
+          const head = this.proceduralHead;
+          if (head) {
+            if (cycle > 0.72) {
+              const swell = 1.0 + (cycle - 0.72) * 1.3;
+              this.proceduralGroup.scale.set(swell, swell, swell);
+              head.material.emissive.set(0xff0000);
+              head.material.emissiveIntensity = Math.sin(time * 25) * 0.8 + 0.8;
+            } else {
+              this.proceduralGroup.scale.set(1.0, 1.0, 1.0);
+              head.material.emissive.set(0x000000);
+              head.material.emissiveIntensity = 0;
+            }
+          }
+        }
+        // Steve Animation
+        else if (preset === 'steve') {
+          const cycle = (time * 0.22) % 1.0;
+          const startZ = -D * 0.8;
+          const endZ = 1.0;
+          
+          this.proceduralGroup.position.z = startZ + cycle * (endZ - startZ);
+          this.proceduralGroup.position.x = -Math.sin(time * 1.2) * (this.screenW * 0.08);
+          
+          if (this.proceduralLegs && this.proceduralLegs.length === 2) {
+            const swing = Math.sin(time * 12 * this.rotationSpeed) * 0.5;
+            this.proceduralLegs[0].rotation.x = swing;
+            this.proceduralLegs[1].rotation.x = -swing;
+          }
+          
+          const armR = this.proceduralArmR;
+          const armL = this.proceduralArmL;
+          if (armR && armL) {
+            if (cycle > 0.65) {
+              armR.rotation.x = -Math.PI / 2 - Math.sin((cycle - 0.65) * Math.PI * 3.0) * 0.9;
+              armR.rotation.z = -0.3;
+            } else {
+              const armSwing = Math.sin(time * 12 * this.rotationSpeed) * 0.4;
+              armR.rotation.x = -armSwing;
+              armR.rotation.z = 0;
+              armL.rotation.x = armSwing;
+            }
+          }
+        }
+        // Chunsik Animation
+        else if (preset === 'chunsik') {
+          const cycle = (time * 0.25) % 1.0;
+          const startZ = -D * 0.8;
+          const endZ = 1.1;
+          
+          this.proceduralGroup.position.z = startZ + cycle * (endZ - startZ);
+          this.proceduralGroup.position.x = Math.sin(time * 1.0) * (this.screenW * 0.12);
+          
+          const jumpHeight = Math.sin(cycle * Math.PI) * 0.42;
+          this.proceduralGroup.position.y = (-this.screenH / 2 + this.borderSize) + jumpHeight;
+          this.proceduralGroup.rotation.x = cycle * Math.PI * 2;
+          this.proceduralGroup.rotation.y = Math.sin(time * 2.0) * 0.15;
+          
+          const armR = this.proceduralArmR;
+          const armL = this.proceduralArmL;
+          if (armR && armL) {
+            const wave = Math.sin(time * 15 * this.rotationSpeed) * 0.25;
+            armR.rotation.z = 0.5 + wave;
+            armL.rotation.z = -0.5 - wave;
+          }
+        }
+        // Teemo Animation
+        else if (preset === 'teemo') {
+          const cycle = (time * 0.2) % 1.0;
+          const startZ = -D * 0.8;
+          const endZ = 0.9;
+          
+          this.proceduralGroup.position.z = startZ + cycle * (endZ - startZ);
+          this.proceduralGroup.position.x = Math.sin(time * 1.5) * (this.screenW * 0.08);
+          
+          if (this.proceduralLegs && this.proceduralLegs.length === 2) {
+            const swing = Math.sin(time * 10 * this.rotationSpeed) * 0.4;
+            this.proceduralLegs[0].rotation.x = swing;
+            this.proceduralLegs[1].rotation.x = -swing;
+          }
+          
+          const pipe = this.proceduralBlowpipe;
+          const armR = this.proceduralArmR;
+          if (pipe && armR) {
+            if (cycle > 0.6) {
+              pipe.position.set(0.04, 0.5, 0.19);
+              pipe.rotation.y = -0.1;
+              pipe.rotation.x = -0.05;
+              armR.rotation.x = -Math.PI / 3;
+              pipe.position.z = 0.19 + (cycle - 0.6) * 0.5;
+            } else {
+              pipe.position.set(0.12, 0.35, 0.18);
+              pipe.rotation.y = -0.4;
+              pipe.rotation.x = -0.2;
+              armR.rotation.x = 0;
+            }
+          }
+        }
+        // Jinx Animation
+        else if (preset === 'jinx') {
+          const cycle = (time * 0.18) % 1.0;
+          const startZ = -D * 0.7;
+          const endZ = 0.8;
+          
+          this.proceduralGroup.position.z = startZ + cycle * (endZ - startZ);
+          this.proceduralGroup.position.x = -Math.cos(time * 1.2) * (this.screenW * 0.06);
+          
+          const waveFreq = 8.0;
+          if (this.proceduralBraidsL && this.proceduralBraidsL.length > 0) {
+            this.proceduralBraidsL.forEach((seg, idx) => {
+              seg.rotation.z = Math.sin(time * waveFreq + idx) * 0.18;
+              seg.rotation.x = Math.cos(time * waveFreq + idx) * 0.1;
+            });
+          }
+          if (this.proceduralBraidsR && this.proceduralBraidsR.length > 0) {
+            this.proceduralBraidsR.forEach((seg, idx) => {
+              seg.rotation.z = -Math.sin(time * waveFreq + idx) * 0.18;
+              seg.rotation.x = Math.cos(time * waveFreq + idx) * 0.1;
+            });
+          }
+          
+          const launcher = this.proceduralFishbones;
+          if (launcher) {
+            if (cycle > 0.6) {
+              const recoil = Math.sin((cycle - 0.6) * 60) * 0.04;
+              launcher.position.z = 0.1 - recoil;
+              launcher.rotation.x = -0.15 + Math.abs(recoil) * 2;
+            } else {
+              launcher.position.z = 0.1;
+              launcher.rotation.x = -0.15;
+            }
+          }
+        }
       }
     }
     // Simple rotation animations for geometric shapes
